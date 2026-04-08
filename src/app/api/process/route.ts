@@ -5,6 +5,9 @@ import { SYSTEM_PROMPT, buildUserPrompt } from "@/lib/claude-prompt";
 import { sendAssessmentEmail } from "@/lib/send-email";
 import { z } from "zod";
 
+// Edge Runtime gives 30s on Vercel Hobby (vs 10s for Node.js serverless)
+export const runtime = "edge";
+
 const processSchema = z.object({
   assessment_id: z.string().uuid(),
 });

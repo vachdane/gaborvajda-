@@ -95,7 +95,7 @@ export function AssessmentFlow() {
         throw new Error(data.error || "Hiba a mentés során");
       }
 
-      // Step 2: Submit assessment (triggers Claude + email)
+      // Step 2: Save assessment (fast — no Claude call)
       const assessRes = await fetch("/api/assess", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,6 +111,17 @@ export function AssessmentFlow() {
         const data = await assessRes.json();
         throw new Error(data.error || "Hiba az elemzés során");
       }
+
+      const assessData = await assessRes.json();
+
+      // Step 3: Fire-and-forget — trigger Claude + email in background
+      fetch("/api/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assessment_id: assessData.assessment_id }),
+      }).catch(() => {
+        // Silently ignore — processing happens server-side
+      });
 
       router.push("/koszonjuk");
     } catch (err) {

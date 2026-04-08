@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { createServiceClient } from "@/lib/supabase/service";
 import { assessSchema } from "@/lib/validation";
-import { SYSTEM_PROMPT, buildUserPrompt } from "@/lib/claude-prompt";
-import { sendAssessmentEmail } from "@/lib/send-email";
-
-export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +30,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Insert assessment
+    // Insert assessment (without AI suggestions yet)
     const { data: assessment, error: assessError } = await supabase
       .from("assessments")
       .insert({
@@ -55,43 +50,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Call Claude API
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-
-    const userPrompt = buildUserPrompt(parsed.data.answers, parsed.data.industry, parsed.data.team_size);
-
-    const message = await anthropic.messages.create({
-      model: "claude-3-5-haiku-20241022",
-      max_tokens: 2000,
-      temperature: 0.7,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    });
-
-    const aiSuggestions =
-      message.content[0].type === "text" ? message.content[0].text : "";
-
-    // Save AI suggestions
-    await supabase
-      .from("assessments")
-      .update({ ai_suggestions: aiSuggestions })
-      .eq("id", assessment.id);
-
-    // Send email inline
-    try {
-      await sendAssessmentEmail(assessment.id);
-    } catch (emailError) {
-      console.error("Email send error:", emailError);
-      // Don't fail the whole request if email fails
-    }
-
     return NextResponse.json({ assessment_id: assessment.id, success: true });
   } catch (err) {
     console.error("Assessment error:", err);
     return NextResponse.json(
-      { error: "Hiba az AI elemzés során. Kérlek próbáld újra." },
+      { error: "Hiba az elemzés mentése során. Kérlek próbáld újra." },
       { status: 500 }
     );
   }

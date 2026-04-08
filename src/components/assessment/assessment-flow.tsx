@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAssessment } from "@/hooks/use-assessment";
 import { ProgressBar } from "./progress-bar";
@@ -17,6 +17,12 @@ export function AssessmentFlow() {
   );
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Refs to always have latest values in handleSubmit without re-creating the callback
+  const assessmentRef = useRef(assessment);
+  assessmentRef.current = assessment;
+  const freeTextExtrasRef = useRef(freeTextExtras);
+  freeTextExtrasRef.current = freeTextExtras;
+
   const handleFreeTextExtra = useCallback(
     (questionId: string, value: string) => {
       setFreeTextExtras((prev) => ({ ...prev, [questionId]: value }));
@@ -25,21 +31,24 @@ export function AssessmentFlow() {
   );
 
   const handleSubmit = useCallback(async () => {
-    assessment.setSubmitting(true);
-    assessment.setError(null);
+    const curr = assessmentRef.current;
+    const extras = freeTextExtrasRef.current;
+
+    curr.setSubmitting(true);
+    curr.setError(null);
     setIsProcessing(true);
 
     try {
       // Build the full answers object with labels for the API
       const answersWithLabels: Record<string, unknown> = {};
       for (const q of QUESTIONS) {
-        const raw = assessment.answers[q.id];
+        const raw = curr.answers[q.id];
         if (raw === undefined) continue;
 
         if (q.type === "single-select" && q.options) {
           const option = q.options.find((o) => o.id === raw);
-          if (option?.hasFreeText && freeTextExtras[q.id]) {
-            answersWithLabels[q.id] = `${option.label}: ${freeTextExtras[q.id]}`;
+          if (option?.hasFreeText && extras[q.id]) {
+            answersWithLabels[q.id] = `${option.label}: ${extras[q.id]}`;
           } else {
             answersWithLabels[q.id] = option?.label || raw;
           }
@@ -66,27 +75,27 @@ export function AssessmentFlow() {
       // Get industry and team_size labels
       const industryQ = QUESTIONS.find((q) => q.id === "industry");
       const industryOption = industryQ?.options?.find(
-        (o) => o.id === assessment.answers.industry
+        (o) => o.id === curr.answers.industry
       );
       const industryLabel =
-        industryOption?.hasFreeText && freeTextExtras.industry
-          ? `${industryOption.label}: ${freeTextExtras.industry}`
-          : industryOption?.label || (assessment.answers.industry as string);
+        industryOption?.hasFreeText && extras.industry
+          ? `${industryOption.label}: ${extras.industry}`
+          : industryOption?.label || (curr.answers.industry as string);
 
       const teamQ = QUESTIONS.find((q) => q.id === "team_size");
       const teamLabel =
-        teamQ?.options?.find((o) => o.id === assessment.answers.team_size)
-          ?.label || (assessment.answers.team_size as string);
+        teamQ?.options?.find((o) => o.id === curr.answers.team_size)
+          ?.label || (curr.answers.team_size as string);
 
       // Step 1: Save lead
       const leadRes = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: assessment.contactInfo.name,
-          email: assessment.contactInfo.email,
-          phone: assessment.contactInfo.phone || null,
-          gdpr_consent: assessment.contactInfo.gdprConsent,
+          name: curr.contactInfo.name,
+          email: curr.contactInfo.email,
+          phone: curr.contactInfo.phone || null,
+          gdpr_consent: curr.contactInfo.gdprConsent,
         }),
       });
 
@@ -100,7 +109,7 @@ export function AssessmentFlow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: assessment.contactInfo.email,
+          email: curr.contactInfo.email,
           answers: answersWithLabels,
           industry: industryLabel,
           team_size: teamLabel,
@@ -117,16 +126,16 @@ export function AssessmentFlow() {
       // Pass assessment_id to thank-you page for background processing
       router.push(`/koszonjuk?aid=${assessData.assessment_id}`);
     } catch (err) {
-      assessment.setError(
+      curr.setError(
         err instanceof Error
           ? err.message
           : "Váratlan hiba történt. Kérlek próbáld újra."
       );
       setIsProcessing(false);
     } finally {
-      assessment.setSubmitting(false);
+      curr.setSubmitting(false);
     }
-  }, [assessment, freeTextExtras, router]);
+  }, [router]);
 
   if (isProcessing && assessment.isSubmitting) {
     return <LoadingScreen />;

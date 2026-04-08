@@ -42,9 +42,16 @@ export function ContactForm({
     gdprConsent &&
     !isSubmitting;
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (canSubmit) {
+      onSubmit();
+    }
+  };
+
   return (
     <div className="animate-fade-in-up">
-      <div className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         <div>
           <h2 className="font-heading text-2xl md:text-3xl font-semibold text-foreground leading-tight">
             Már csak egy lépés!
@@ -113,12 +120,12 @@ export function ContactForm({
         )}
 
         <div className="flex items-center gap-3 pt-4">
-          <Button variant="ghost" size="sm" onClick={onPrev}>
+          <Button type="button" variant="ghost" size="sm" onClick={onPrev}>
             <ArrowLeft className="w-4 h-4 mr-1" />
             Vissza
           </Button>
           <Button
-            onClick={onSubmit}
+            type="submit"
             disabled={!canSubmit}
             className="ml-auto"
           >
@@ -132,7 +139,7 @@ export function ContactForm({
             )}
           </Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

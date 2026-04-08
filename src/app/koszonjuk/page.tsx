@@ -1,11 +1,33 @@
+"use client";
+
+import { Suspense, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle, Calendar, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function ThankYouPage() {
+function ThankYouContent() {
+  const searchParams = useSearchParams();
+  const assessmentId = searchParams.get("aid");
+  const processedRef = useRef(false);
+
   const calendlyUrl =
     process.env.NEXT_PUBLIC_CALENDLY_URL ||
-    "https://calendly.com/gaborvajda/30min";
+    "https://calendly.com/saasxpert/30min";
+
+  useEffect(() => {
+    if (!assessmentId || processedRef.current) return;
+    processedRef.current = true;
+
+    // Trigger background processing (Claude + email)
+    fetch("/api/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assessment_id: assessmentId }),
+    }).catch((err) => {
+      console.error("Background processing error:", err);
+    });
+  }, [assessmentId]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -22,8 +44,8 @@ export default function ThankYouPage() {
           </h1>
 
           <p className="text-muted-foreground mt-4 text-lg leading-relaxed font-body max-w-md mx-auto">
-            Az AI elemzés alapján összeállítottuk a személyre szabott
-            javaslataidat. Hamarosan megkapod emailben!
+            Az AI éppen összeállítja a személyre szabott javaslataidat.
+            Hamarosan megkapod emailben!
           </p>
 
           <div className="mt-10 p-6 bg-card rounded-xl border border-border max-w-md mx-auto">
@@ -37,7 +59,11 @@ export default function ThankYouPage() {
             </p>
             <div className="mt-5">
               <Button asChild size="lg">
-                <a href={calendlyUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={calendlyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Konzultáció foglalása
                   <Calendar className="w-4 h-4 ml-2" />
                 </a>
@@ -56,5 +82,13 @@ export default function ThankYouPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function ThankYouPage() {
+  return (
+    <Suspense fallback={null}>
+      <ThankYouContent />
+    </Suspense>
   );
 }

@@ -114,16 +114,8 @@ export function AssessmentFlow() {
 
       const assessData = await assessRes.json();
 
-      // Step 3: Fire-and-forget — trigger Claude + email in background
-      fetch("/api/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assessment_id: assessData.assessment_id }),
-      }).catch(() => {
-        // Silently ignore — processing happens server-side
-      });
-
-      router.push("/koszonjuk");
+      // Pass assessment_id to thank-you page for background processing
+      router.push(`/koszonjuk?aid=${assessData.assessment_id}`);
     } catch (err) {
       assessment.setError(
         err instanceof Error

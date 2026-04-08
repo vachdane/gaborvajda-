@@ -7,6 +7,7 @@ interface AssessmentState {
   currentStep: number;
   answers: Record<string, unknown>;
   contactInfo: {
+    name: string;
     email: string;
     phone: string;
     gdprConsent: boolean;
@@ -27,6 +28,7 @@ const initialState: AssessmentState = {
   currentStep: 0,
   answers: {},
   contactInfo: {
+    name: "",
     email: "",
     phone: "",
     gdprConsent: false,
@@ -118,6 +120,12 @@ export function useAssessment() {
     }
     if (currentQuestion.type === "free-text") {
       return typeof answer === "string" && answer.trim().length > 0;
+    }
+    if (currentQuestion.type === "pain-details") {
+      // At least one pain detail must be filled
+      const painDetails = answer as Record<string, string> | undefined;
+      if (!painDetails) return false;
+      return Object.values(painDetails).some((v) => v.trim().length > 0);
     }
     return false;
   }, [state.answers, currentQuestion, isQuestionStep]);

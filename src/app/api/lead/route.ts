@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
       .from("leads")
       .upsert(
         {
+          name: parsed.data.name,
           email: parsed.data.email,
           phone: parsed.data.phone || null,
           gdpr_consent: parsed.data.gdpr_consent,

@@ -4,6 +4,7 @@
 -- leads table
 CREATE TABLE leads (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL DEFAULT '',
   email text NOT NULL UNIQUE,
   phone text,
   gdpr_consent boolean NOT NULL DEFAULT false,

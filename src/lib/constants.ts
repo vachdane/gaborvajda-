@@ -1,4 +1,4 @@
-export type QuestionType = "single-select" | "multi-select" | "free-text";
+export type QuestionType = "single-select" | "multi-select" | "free-text" | "pain-details";
 
 export interface QuestionOption {
   id: string;
@@ -8,23 +8,51 @@ export interface QuestionOption {
 
 export interface Question {
   id: string;
-  intro?: string;
   text: string;
   type: QuestionType;
   options?: QuestionOption[];
   required: boolean;
-  conditional?: {
-    dependsOn: string;
-    templates: Record<string, string>;
-    defaultText: string;
-  };
 }
+
+// Hints for each time waster — used in the dynamic pain detail step
+export const PAIN_HINTS: Record<string, { question: string; placeholder: string }> = {
+  ajanlatkeszites: {
+    question: "Ajánlatkészítés, árazás",
+    placeholder: "Pl. Mennyi időt vesz igénybe egy ajánlat? Mi benne az ismétlődő rész?",
+  },
+  adminisztracio: {
+    question: "Adminisztráció, papírmunka",
+    placeholder: "Pl. Milyen papírmunkát csinálsz rendszeresen? Mi veszi el a legtöbb időt?",
+  },
+  ugyfelkommunikacio: {
+    question: "Ügyfélkommunikáció",
+    placeholder: "Pl. Ugyanazokat a kérdéseket kapod újra meg újra? Mennyi emailt kapsz naponta?",
+  },
+  szamlazas: {
+    question: "Számlázás, pénzügyek",
+    placeholder: "Pl. Mi okozza a legtöbb gondot? Mennyi időt töltesz vele havonta?",
+  },
+  csapatkoordinacio: {
+    question: "Csapatkoordináció, beosztás",
+    placeholder: "Pl. Honnan tudod, ki hol tart? Hogyan osztod be a feladatokat?",
+  },
+  keszletkezeles: {
+    question: "Készletkezelés, rendelés",
+    placeholder: "Pl. Hogyan követed a készletet? Mi okozza a legnagyobb kihívást?",
+  },
+  riportok: {
+    question: "Riportok, kimutatások",
+    placeholder: "Pl. Milyen adatokat kell rendszeresen összesítened? Mennyi időbe telik?",
+  },
+  crm: {
+    question: "Ügyféladatok kezelése",
+    placeholder: "Pl. Hol tartod nyilván az ügyfeleidet? Mi a legproblémásabb benne?",
+  },
+};
 
 export const QUESTIONS: Question[] = [
   {
     id: "industry",
-    intro:
-      "Szia! Gábor vagyok. Segítek kideríteni, hol spórolhatnál időt és pénzt AI-alapú automatizálással.",
     text: "Először is — melyik területen dolgozol?",
     type: "single-select",
     required: true,
@@ -36,10 +64,9 @@ export const QUESTIONS: Question[] = [
         id: "szolgaltatas",
         label: "Szolgáltatás (szépségápolás, szerviz, takarítás stb.)",
       },
-      {
-        id: "penzugy",
-        label: "Pénzügy / Könyvelés / Tanácsadás",
-      },
+      { id: "penzugy", label: "Pénzügy / Könyvelés" },
+      { id: "jogi", label: "Jogi szolgáltatások" },
+      { id: "sales", label: "Értékesítés / Sales" },
       { id: "egeszsegugy", label: "Egészségügy" },
       { id: "egyeb", label: "Egyéb", hasFreeText: true },
     ],
@@ -98,32 +125,10 @@ export const QUESTIONS: Question[] = [
     ],
   },
   {
-    id: "pain_detail",
-    text: "", // Set dynamically based on Q3
-    type: "free-text",
+    id: "pain_details",
+    text: "Mesélj egy kicsit bővebben az egyes területekről!",
+    type: "pain-details",
     required: true,
-    conditional: {
-      dependsOn: "time_wasters",
-      templates: {
-        ajanlatkeszites:
-          "Az ajánlatkészítésnél mi a legnagyobb probléma? Mennyi időt vesz igénybe átlagosan egy ajánlat?",
-        ugyfelkommunikacio:
-          "Az ügyfélkommunikációban mi fáj a legjobban? Ugyanazokat a kérdéseket kapod újra meg újra?",
-        csapatkoordinacio:
-          "A csapatkoordinációban mi a legfrusztrálóbb? Honnan tudod, ki hol tart éppen?",
-        adminisztracio:
-          "Az adminisztrációban mi veszi el a legtöbb idődet? Milyen papírmunkát csinálsz rendszeresen?",
-        szamlazas:
-          "A számlázásnál mi okozza a legtöbb gondot? Mennyi időt töltesz vele havonta?",
-        keszletkezeles:
-          "A készletkezelésnél mi a legnagyobb kihívás? Hogyan követed most a rendeléseket?",
-        riportok:
-          "A riportok készítésénél mi a legidőigényesebb? Milyen adatokat kell rendszeresen összesítened?",
-        crm: "Az ügyféladatok kezelésénél mi a legproblémásabb? Hol tartod most nyilván az ügyfeleidet?",
-      },
-      defaultText:
-        "Mesélj egy kicsit bővebben a legnagyobb időrabló feladatodról! Mi a legfrusztrálóbb benne?",
-    },
   },
   {
     id: "dream_automation",
@@ -145,20 +150,3 @@ export const QUESTIONS: Question[] = [
     ],
   },
 ];
-
-export function getQuestionText(
-  question: Question,
-  answers: Record<string, unknown>
-): string {
-  if (!question.conditional) return question.text;
-
-  const dependsOnAnswer = answers[question.conditional.dependsOn];
-  if (Array.isArray(dependsOnAnswer) && dependsOnAnswer.length > 0) {
-    const firstPick = dependsOnAnswer[0] as string;
-    return (
-      question.conditional.templates[firstPick] ||
-      question.conditional.defaultText
-    );
-  }
-  return question.conditional.defaultText;
-}

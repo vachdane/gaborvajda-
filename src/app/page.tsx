@@ -30,7 +30,7 @@ export default function Home() {
         {/* Footer */}
         <footer className="mt-20 text-center">
           <p className="text-sm text-muted-foreground font-body">
-            &copy; {new Date().getFullYear()} Vajda Gábor e.v. &middot;{" "}
+            &copy; {new Date().getFullYear()} Saasxpert Kft. &middot;{" "}
             <a
               href="https://www.gaborvajda.com"
               className="text-primary hover:underline"

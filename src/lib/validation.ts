@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const leadSchema = z.object({
+  name: z.string().min(1, "A név megadása kötelező"),
   email: z.string().email("Érvényes email címet adj meg"),
   phone: z.string().optional().nullable(),
   gdpr_consent: z.literal(true, {

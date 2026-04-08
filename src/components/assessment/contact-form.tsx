@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Send } from "lucide-react";
 
 interface ContactFormProps {
+  name: string;
   email: string;
   phone: string;
   gdprConsent: boolean;
   isSubmitting: boolean;
   error: string | null;
+  onNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onPhoneChange: (value: string) => void;
   onGdprChange: (value: boolean) => void;
@@ -20,11 +22,13 @@ interface ContactFormProps {
 }
 
 export function ContactForm({
+  name,
   email,
   phone,
   gdprConsent,
   isSubmitting,
   error,
+  onNameChange,
   onEmailChange,
   onPhoneChange,
   onGdprChange,
@@ -32,7 +36,11 @@ export function ContactForm({
   onPrev,
 }: ContactFormProps) {
   const canSubmit =
-    email.includes("@") && email.includes(".") && gdprConsent && !isSubmitting;
+    name.trim().length > 0 &&
+    email.includes("@") &&
+    email.includes(".") &&
+    gdprConsent &&
+    !isSubmitting;
 
   return (
     <div className="animate-fade-in-up">
@@ -42,12 +50,24 @@ export function ContactForm({
             Már csak egy lépés!
           </h2>
           <p className="text-muted-foreground mt-2 font-body leading-relaxed">
-            Add meg az email címedet, és 24 órán belül küldök egy személyre
-            szabott javaslatot AI automatizálási lehetőségekkel a céged számára.
+            Add meg az elérhetőségedet, és küldök egy személyre szabott
+            javaslatot AI automatizálási lehetőségekkel a céged számára.
           </p>
         </div>
 
         <div className="space-y-4 w-full">
+          <div className="space-y-2">
+            <Label htmlFor="name">Név *</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Kovács Tamás"
+              value={name}
+              onChange={(e) => onNameChange(e.target.value)}
+              required
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email cím *</Label>
             <Input
@@ -81,7 +101,7 @@ export function ContactForm({
               htmlFor="gdpr"
               className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
             >
-              Elfogadom, hogy az adataimat a Vajda Gábor e.v. az AI felmérés
+              Elfogadom, hogy az adataimat a Saasxpert Kft. az AI felmérés
               kiértékelése és a személyre szabott javaslat elküldése céljából
               kezelje. Az adataimat bármikor töröltethetem.
             </Label>
@@ -103,9 +123,7 @@ export function ContactForm({
             className="ml-auto"
           >
             {isSubmitting ? (
-              <>
-                <span className="animate-pulse">Feldolgozás...</span>
-              </>
+              <span className="animate-pulse">Feldolgozás...</span>
             ) : (
               <>
                 Kérem a javaslatokat

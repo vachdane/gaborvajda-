@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { SingleSelect } from "./single-select";
 import { MultiSelect } from "./multi-select";
 import { FreeText } from "./free-text";
+import { PainDetails } from "./pain-details";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import type { Question } from "@/lib/constants";
-import { getQuestionText } from "@/lib/constants";
 
 interface QuestionCardProps {
   question: Question;
@@ -32,13 +32,12 @@ export function QuestionCard({
   isFirst,
 }: QuestionCardProps) {
   const currentAnswer = answers[question.id];
-  const questionText = getQuestionText(question, answers);
 
   return (
     <div className="animate-fade-in-up">
       <div className="space-y-6">
         <h2 className="font-heading text-2xl md:text-3xl font-semibold text-foreground leading-tight">
-          {questionText}
+          {question.text}
         </h2>
 
         <div className="pt-2">
@@ -66,6 +65,14 @@ export function QuestionCard({
               onChange={(v) => onAnswer(v)}
             />
           )}
+
+          {question.type === "pain-details" && (
+            <PainDetails
+              selectedWasters={(answers.time_wasters as string[]) || []}
+              value={(currentAnswer as Record<string, string>) || {}}
+              onChange={(v) => onAnswer(v)}
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-3 pt-4">
@@ -80,7 +87,7 @@ export function QuestionCard({
             disabled={!canProceed && question.required}
             className="ml-auto"
           >
-            {question.required ? "Tovább" : "Tovább"}
+            Tovább
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

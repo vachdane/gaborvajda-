@@ -2,6 +2,12 @@ import { Resend } from "resend";
 import { createServiceClient } from "@/lib/supabase/service";
 import { renderEmailHtml } from "@/lib/email-template";
 
+function getFirstName(fullName: string): string {
+  // Hungarian names: "Kovács Tamás" → first name is the last word
+  const parts = fullName.trim().split(/\s+/);
+  return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+}
+
 export async function sendAssessmentEmail(assessmentId: string) {
   const supabase = createServiceClient();
 
@@ -24,18 +30,27 @@ export async function sendAssessmentEmail(assessmentId: string) {
     throw new Error(`Lead not found for assessment: ${assessmentId}`);
   }
 
+  const firstName = getFirstName(lead.name || "");
+
   const emailHtml = renderEmailHtml({
+    firstName,
     industry: assessment.industry,
     suggestions: assessment.ai_suggestions,
-    calendlyUrl: process.env.NEXT_PUBLIC_CALENDLY_URL || "https://calendly.com/gaborvajda",
+    calendlyUrl:
+      process.env.NEXT_PUBLIC_CALENDLY_URL ||
+      "https://calendly.com/saasxpert/30min",
   });
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
+  const subjectName = firstName || lead.email.split("@")[0];
+
   await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL || "Vajda Gábor <gabor@gaborvajda.com>",
+    from:
+      process.env.RESEND_FROM_EMAIL ||
+      "Vajda Gábor <gabor@gaborvajda.com>",
     to: lead.email,
-    subject: `${lead.email.split("@")[0]}, itt az AI automatizálási javaslatod!`,
+    subject: `${subjectName}, itt az AI automatizálási javaslatod!`,
     html: emailHtml,
   });
 

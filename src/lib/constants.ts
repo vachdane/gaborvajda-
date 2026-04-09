@@ -110,6 +110,8 @@ export const QUESTIONS: Question[] = [
     required: true,
     options: [
       { id: "excel", label: "Excel / Google Sheets" },
+      { id: "email", label: "Email" },
+      { id: "docs", label: "Word / Google Docs" },
       { id: "papir", label: "Papír alapú rendszer" },
       { id: "chat", label: "WhatsApp / Messenger csoportok" },
       {
@@ -122,6 +124,7 @@ export const QUESTIONS: Question[] = [
         label: "Dobozos szoftver (pl. iScala, MiniCRM, Salesforce stb.)",
       },
       { id: "semmi", label: "Semmi különös, fejben tartom" },
+      { id: "egyeb_tool", label: "Egyéb", hasFreeText: true },
     ],
   },
   {

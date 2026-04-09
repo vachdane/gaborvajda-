@@ -1,15 +1,24 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import type { QuestionOption } from "@/lib/constants";
 
 interface MultiSelectProps {
   options: QuestionOption[];
   value: string[];
+  freeTextValues?: Record<string, string>;
   onChange: (value: string[]) => void;
+  onFreeTextChange?: (optionId: string, value: string) => void;
 }
 
-export function MultiSelect({ options, value, onChange }: MultiSelectProps) {
+export function MultiSelect({
+  options,
+  value,
+  freeTextValues,
+  onChange,
+  onFreeTextChange,
+}: MultiSelectProps) {
   const toggle = (id: string) => {
     if (value.includes(id)) {
       onChange(value.filter((v) => v !== id));
@@ -17,6 +26,11 @@ export function MultiSelect({ options, value, onChange }: MultiSelectProps) {
       onChange([...value, id]);
     }
   };
+
+  // Collect options that are selected and have hasFreeText
+  const selectedFreeTextOptions = options.filter(
+    (o) => o.hasFreeText && value.includes(o.id)
+  );
 
   return (
     <div className="space-y-3">
@@ -43,6 +57,16 @@ export function MultiSelect({ options, value, onChange }: MultiSelectProps) {
           );
         })}
       </div>
+      {selectedFreeTextOptions.map((option) => (
+        <Input
+          key={option.id}
+          placeholder="Írd be, milyen eszközt használtok..."
+          value={freeTextValues?.[option.id] || ""}
+          onChange={(e) => onFreeTextChange?.(option.id, e.target.value)}
+          className="mt-3 w-full animate-fade-in-up"
+          autoFocus
+        />
+      ))}
     </div>
   );
 }

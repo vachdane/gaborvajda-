@@ -53,9 +53,13 @@ export function AssessmentFlow() {
             answersWithLabels[q.id] = option?.label || raw;
           }
         } else if (q.type === "multi-select" && q.options && Array.isArray(raw)) {
-          answersWithLabels[q.id] = (raw as string[]).map(
-            (id) => q.options!.find((o) => o.id === id)?.label || id
-          );
+          answersWithLabels[q.id] = (raw as string[]).map((id) => {
+            const opt = q.options!.find((o) => o.id === id);
+            if (opt?.hasFreeText && extras[id]) {
+              return `${opt.label}: ${extras[id]}`;
+            }
+            return opt?.label || id;
+          });
         } else if (q.type === "pain-details") {
           // Convert pain details from {id: text} to {label: text}
           const painMap = raw as Record<string, string>;

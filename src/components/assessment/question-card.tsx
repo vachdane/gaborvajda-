@@ -55,7 +55,9 @@ export function QuestionCard({
             <MultiSelect
               options={question.options}
               value={(currentAnswer as string[]) || []}
+              freeTextValues={freeTextExtras}
               onChange={(v) => onAnswer(v)}
+              onFreeTextChange={(optionId, v) => onFreeTextExtra(optionId, v)}
             />
           )}
 

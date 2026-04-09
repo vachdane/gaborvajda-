@@ -60,7 +60,7 @@ export function MultiSelect({
       {selectedFreeTextOptions.map((option) => (
         <Input
           key={option.id}
-          placeholder="Írd be, milyen eszközt használtok..."
+          placeholder="Kérlek pontosítsd..."
           value={freeTextValues?.[option.id] || ""}
           onChange={(e) => onFreeTextChange?.(option.id, e.target.value)}
           className="mt-3 w-full animate-fade-in-up"

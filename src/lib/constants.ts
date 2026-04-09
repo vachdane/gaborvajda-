@@ -48,6 +48,10 @@ export const PAIN_HINTS: Record<string, { question: string; placeholder: string 
     question: "Ügyféladatok kezelése",
     placeholder: "Pl. Hol tartod nyilván az ügyfeleidet? Mi a legproblémásabb benne?",
   },
+  egyeb_waster: {
+    question: "Egyéb időrabló terület",
+    placeholder: "Pl. Milyen feladatról van szó? Mennyi időt vesz igénybe?",
+  },
 };
 
 export const QUESTIONS: Question[] = [
@@ -101,6 +105,7 @@ export const QUESTIONS: Question[] = [
       { id: "keszletkezeles", label: "Készletkezelés, rendelés" },
       { id: "riportok", label: "Riportok, kimutatások" },
       { id: "crm", label: "Ügyféladatok kezelése (CRM)" },
+      { id: "egyeb_waster", label: "Egyéb", hasFreeText: true },
     ],
   },
   {

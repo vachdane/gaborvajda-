@@ -48,7 +48,7 @@ export function AssessmentFlow() {
         if (q.type === "single-select" && q.options) {
           const option = q.options.find((o) => o.id === raw);
           if (option?.hasFreeText && extras[q.id]) {
-            answersWithLabels[q.id] = `${option.label}: ${extras[q.id]}`;
+            answersWithLabels[q.id] = extras[q.id];
           } else {
             answersWithLabels[q.id] = option?.label || raw;
           }
@@ -56,7 +56,7 @@ export function AssessmentFlow() {
           answersWithLabels[q.id] = (raw as string[]).map((id) => {
             const opt = q.options!.find((o) => o.id === id);
             if (opt?.hasFreeText && extras[id]) {
-              return `${opt.label}: ${extras[id]}`;
+              return extras[id];
             }
             return opt?.label || id;
           });
@@ -83,7 +83,7 @@ export function AssessmentFlow() {
       );
       const industryLabel =
         industryOption?.hasFreeText && extras.industry
-          ? `${industryOption.label}: ${extras.industry}`
+          ? extras.industry
           : industryOption?.label || (curr.answers.industry as string);
 
       const teamQ = QUESTIONS.find((q) => q.id === "team_size");

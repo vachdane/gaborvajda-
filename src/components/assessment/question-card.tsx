@@ -72,6 +72,7 @@ export function QuestionCard({
             <PainDetails
               selectedWasters={(answers.time_wasters as string[]) || []}
               value={(currentAnswer as Record<string, string>) || {}}
+              freeTextExtras={freeTextExtras}
               onChange={(v) => onAnswer(v)}
             />
           )}

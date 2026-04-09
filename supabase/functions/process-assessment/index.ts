@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.102.1";
 
-const SYSTEM_PROMPT = `Te Vajda Gábor vagy, üzleti AI tervező és építő. Egyedi, AI-alapú üzleti alkalmazásokat tervezel és építesz magyar kis- és középvállalkozásoknak.
+const SYSTEM_PROMPT = `Te Vajda Gábor vagy, AI tanácsadó. Egyedi, AI-alapú üzleti alkalmazásokat tervezel és építesz magyar kis- és középvállalkozásoknak.
 
 A háttered: 10+ év termékdesign tapasztalat (Philips, Honeywell, 70+ B2B SaaS projekt), Certified Scrum Product Owner. Nem fejlesztő vagy, nem ügynökség — hanem egy termékdesigner aki épít. Először megérted az üzleti problémát, aztán megtervezed és megépíted a megoldást.
 
@@ -125,7 +125,7 @@ function renderEmailHtml(
                 Vajda Gábor
               </h1>
               <p style="font-family: Arial, sans-serif; font-size: 14px; color: #8B7D6B; margin: 8px 0 0 0;">
-                Üzleti AI tervező és építő
+                AI tanácsadás és tervezés vállalkozásoknak
               </p>
             </td>
           </tr>
@@ -171,7 +171,7 @@ function renderEmailHtml(
                 Vajda Gábor
               </p>
               <p style="font-family: Arial, sans-serif; font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 4px 0 0 0;">
-                Üzleti AI tervező és építő<br>
+                AI tanácsadás és tervezés vállalkozásoknak<br>
                 Egyedi alkalmazások magyar vállalkozásoknak.<br>
                 <a href="https://www.gaborvajda.com" style="color: #C2613A; text-decoration: none;">www.gaborvajda.com</a>
               </p>
@@ -329,6 +329,64 @@ Deno.serve(async (req) => {
             email_sent_at: new Date().toISOString(),
           })
           .eq("id", assessment.id);
+      }
+
+      // Send admin notification email
+      const answersFormatted = Object.entries(
+        assessment.answers as Record<string, unknown>
+      )
+        .map(([key, val]) => {
+          if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+            const nested = Object.entries(val as Record<string, string>)
+              .filter(([, v]) => v)
+              .map(([k, v]) => `    • ${k}: ${v}`)
+              .join("\n");
+            return `<strong>${key}:</strong><br>${nested.replace(/\n/g, "<br>")}`;
+          }
+          if (Array.isArray(val)) return `<strong>${key}:</strong> ${val.join(", ")}`;
+          return `<strong>${key}:</strong> ${val}`;
+        })
+        .join("<br><br>");
+
+      const adminHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="font-family: Arial, sans-serif; padding: 20px; color: #2E2518;">
+  <h2 style="color: #C2613A;">Új felmérés érkezett!</h2>
+  <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+    <tr><td style="padding: 8px; border-bottom: 1px solid #E8DFD4; font-weight: bold; width: 120px;">Név</td><td style="padding: 8px; border-bottom: 1px solid #E8DFD4;">${lead.name || "–"}</td></tr>
+    <tr><td style="padding: 8px; border-bottom: 1px solid #E8DFD4; font-weight: bold;">Email</td><td style="padding: 8px; border-bottom: 1px solid #E8DFD4;">${lead.email}</td></tr>
+    <tr><td style="padding: 8px; border-bottom: 1px solid #E8DFD4; font-weight: bold;">Telefon</td><td style="padding: 8px; border-bottom: 1px solid #E8DFD4;">${lead.phone || "–"}</td></tr>
+    <tr><td style="padding: 8px; border-bottom: 1px solid #E8DFD4; font-weight: bold;">Iparág</td><td style="padding: 8px; border-bottom: 1px solid #E8DFD4;">${assessment.industry}</td></tr>
+    <tr><td style="padding: 8px; border-bottom: 1px solid #E8DFD4; font-weight: bold;">Csapatméret</td><td style="padding: 8px; border-bottom: 1px solid #E8DFD4;">${assessment.team_size}</td></tr>
+  </table>
+
+  <h3 style="margin-top: 24px; color: #C2613A;">Válaszok</h3>
+  <div style="background: #FFFCF7; padding: 16px; border-radius: 8px; border: 1px solid #E8DFD4; line-height: 1.6;">
+    ${answersFormatted}
+  </div>
+
+  <h3 style="margin-top: 24px; color: #C2613A;">AI javaslatok</h3>
+  <div style="background: #FFFCF7; padding: 16px; border-radius: 8px; border: 1px solid #E8DFD4; line-height: 1.6;">
+    ${markdownToHtml(aiSuggestions)}
+  </div>
+</body></html>`;
+
+      const adminRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${resendKey}`,
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: "gabor@saasxpert.com",
+          subject: `Új AI felmérés: ${lead.name || lead.email} (${assessment.industry})`,
+          html: adminHtml,
+        }),
+      });
+
+      if (!adminRes.ok) {
+        console.error("Admin email error:", adminRes.status, await adminRes.text());
       }
     }
 

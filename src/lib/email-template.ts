@@ -50,7 +50,7 @@ export function renderEmailHtml({
                 Vajda Gábor
               </h1>
               <p style="font-family: Arial, sans-serif; font-size: 14px; color: #8B7D6B; margin: 8px 0 0 0;">
-                Üzleti AI tervező és építő
+                AI tanácsadás és tervezés vállalkozásoknak
               </p>
             </td>
           </tr>
@@ -96,7 +96,7 @@ export function renderEmailHtml({
                 Vajda Gábor
               </p>
               <p style="font-family: Arial, sans-serif; font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 4px 0 0 0;">
-                Üzleti AI tervező és építő<br>
+                AI tanácsadás és tervezés vállalkozásoknak<br>
                 Egyedi alkalmazások magyar vállalkozásoknak.<br>
                 <a href="https://www.gaborvajda.com" style="color: #C2613A; text-decoration: none;">www.gaborvajda.com</a>
               </p>

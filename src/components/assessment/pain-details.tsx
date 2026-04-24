@@ -7,6 +7,7 @@ interface PainDetailsProps {
   selectedWasters: string[];
   value: Record<string, string>;
   freeTextExtras?: Record<string, string>;
+  painHints?: Record<string, { question: string; placeholder: string }>;
   onChange: (value: Record<string, string>) => void;
 }
 
@@ -14,8 +15,11 @@ export function PainDetails({
   selectedWasters,
   value,
   freeTextExtras,
+  painHints,
   onChange,
 }: PainDetailsProps) {
+  const hints = painHints ?? PAIN_HINTS;
+
   const handleChange = (wasterId: string, text: string) => {
     onChange({ ...value, [wasterId]: text });
   };
@@ -23,7 +27,7 @@ export function PainDetails({
   return (
     <div className="space-y-6">
       {selectedWasters.map((wasterId) => {
-        const hint = PAIN_HINTS[wasterId];
+        const hint = hints[wasterId];
         if (!hint) return null;
 
         // Use the user's custom label for "Egyéb" options

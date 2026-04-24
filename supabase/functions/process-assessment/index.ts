@@ -1,5 +1,40 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.102.1";
 
+const SYSTEM_PROMPT_EN = `You are Gábor Vajda, a business AI consultant and strategist. You design and build custom, AI-powered business applications for small and medium-sized businesses.
+
+Your background: 10+ years of product design experience (Philips, Honeywell, 70+ B2B SaaS projects), Certified Scrum Product Owner. You're not a developer, not an agency — you're a product designer who builds. You first understand the business problem, then design and build the solution.
+
+What you do: build custom digital tools that replace manual, Excel-based, or fragmented workflows. Your applications include AI capabilities (voice input, document generation, intelligent suggestions, automatic summaries) — but only where they create real value.
+
+Your task: based on the completed assessment, provide 3-5 specific, practical, ROI-focused automation and AI suggestions.
+
+IMPORTANT RULES:
+- DO NOT mention specific tool names, software, or platforms (DO NOT write Make.com, Zapier, ChatGPT, n8n, or any specific product). Instead, describe WHAT the solution would do, not WHICH TOOL would do it.
+- Talk about solutions, systems, automations — but don't advertise tools
+- Reference specific details from their answers to show you truly understood their problem
+- Use a friendly but professional tone
+- Tailor suggestions to their industry
+- Calibrate estimates based on team size
+- If the company is small (1-5 people), prefer simple, quick-to-implement solutions
+- If the company is larger (15+ people), more complex integrated systems can be considered
+
+Provide each suggestion in the following structure:
+
+## [Suggestion Title]
+
+**Problem:** [What they currently do manually/inefficiently — referencing specifics from their answers]
+**Solution:** [WHAT the system would do, how it would work in practice — WITHOUT tool names]
+**Estimated savings:** [hours/week OR $/month — specific but realistic]
+**Complexity:** [Simple ⭐ / Medium ⭐⭐ / Advanced ⭐⭐⭐]
+
+---
+
+At the end, provide a summary:
+
+## Summary
+**Estimated total savings:** [X hours/week or $Y/month]
+**Recommended first step:** [Which suggestion to start with and why]`;
+
 const SYSTEM_PROMPT = `Te Vajda Gábor vagy, AI tanácsadó. Egyedi, AI-alapú üzleti alkalmazásokat tervezel és építesz magyar kis- és középvállalkozásoknak.
 
 A háttered: 10+ év termékdesign tapasztalat (Philips, Honeywell, 70+ B2B SaaS projekt), Certified Scrum Product Owner. Nem fejlesztő vagy, nem ügynökség — hanem egy termékdesigner aki épít. Először megérted az üzleti problémát, aztán megtervezed és megépíted a megoldást.
@@ -101,16 +136,37 @@ function renderEmailHtml(
   firstName: string,
   industry: string,
   suggestions: string,
-  calendlyUrl: string
+  calendlyUrl: string,
+  lang: string = "hu"
 ): string {
   const suggestionsHtml = markdownToHtml(suggestions);
+  const isEn = lang === "en";
+
+  const greeting = isEn ? `Hi ${firstName}!` : `Szia ${firstName}!`;
+  const intro = isEn
+    ? `Thank you for completing the assessment! I've reviewed your answers — as a professional in the <strong>${industry}</strong> field, here are the AI automation opportunities I recommend:`
+    : `Köszönöm, hogy kitöltötted a felmérést! Átnéztem a válaszaidat — mint <strong>${industry}</strong> területen dolgozó szakembernek, az alábbi AI automatizálási lehetőségeket javaslom:`;
+  const ctaText = isEn
+    ? `Would you like to discuss these opportunities in more detail?<br>Book a free 30-minute consultation:`
+    : `Szeretnéd, ha részletesebben átbeszélnénk ezeket a lehetőségeket?<br>Foglalj egy ingyenes, 30 perces konzultációt:`;
+  const ctaButton = isEn ? "Book a consultation &rarr;" : "Konzultáció foglalása &rarr;";
+  const footerLine = isEn
+    ? "AI consulting and strategy for businesses"
+    : "AI tanácsadás és tervezés vállalkozásoknak";
+  const footerSub = isEn
+    ? "Custom AI applications for businesses."
+    : "Egyedi alkalmazások magyar vállalkozásoknak.";
+  const footerDisclaimer = isEn
+    ? `You received this email because you completed the AI assessment at felmeres.gaborvajda.com/en.<br>Saasxpert Kft.`
+    : `Ezt az emailt azért kaptad, mert kitöltötted az AI felmérést a felmeres.gaborvajda.com oldalon.<br>Saasxpert Kft.`;
+  const emailTitle = isEn ? "AI Automation Suggestions" : "AI Automatizálási Javaslatok";
 
   return `<!DOCTYPE html>
-<html lang="hu">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Automatizálási Javaslatok</title>
+  <title>${emailTitle}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #FFFCF7; font-family: Arial, sans-serif;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #FFFCF7;">
@@ -125,7 +181,7 @@ function renderEmailHtml(
                 Vajda Gábor
               </h1>
               <p style="font-family: Arial, sans-serif; font-size: 14px; color: #8B7D6B; margin: 8px 0 0 0;">
-                AI tanácsadás és tervezés vállalkozásoknak
+                ${footerLine}
               </p>
             </td>
           </tr>
@@ -135,10 +191,10 @@ function renderEmailHtml(
             <td style="background-color: #FFFFFF; border-radius: 12px; padding: 32px; border: 1px solid #E8DFD4;">
 
               <p style="font-family: Arial, sans-serif; font-size: 16px; color: #4A3D2E; line-height: 1.7; margin: 0 0 16px 0;">
-                Szia ${firstName}!
+                ${greeting}
               </p>
               <p style="font-family: Arial, sans-serif; font-size: 16px; color: #4A3D2E; line-height: 1.7; margin: 0 0 24px 0;">
-                Köszönöm, hogy kitöltötted a felmérést! Átnéztem a válaszaidat — mint <strong>${industry}</strong> területen dolgozó szakembernek, az alábbi AI automatizálási lehetőségeket javaslom:
+                ${intro}
               </p>
 
               <!-- AI Suggestions -->
@@ -151,11 +207,10 @@ function renderEmailHtml(
                 <tr>
                   <td align="center">
                     <p style="font-family: Arial, sans-serif; font-size: 16px; color: #4A3D2E; line-height: 1.7; margin: 0 0 20px 0;">
-                      Szeretnéd, ha részletesebben átbeszélnénk ezeket a lehetőségeket?<br>
-                      Foglalj egy ingyenes, 30 perces konzultációt:
+                      ${ctaText}
                     </p>
                     <a href="${calendlyUrl}" target="_blank" style="display: inline-block; background-color: #C2613A; color: #FFFFFF; font-family: Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 36px; border-radius: 50px;">
-                      Konzultáció foglalása &rarr;
+                      ${ctaButton}
                     </a>
                   </td>
                 </tr>
@@ -171,13 +226,12 @@ function renderEmailHtml(
                 Vajda Gábor
               </p>
               <p style="font-family: Arial, sans-serif; font-size: 13px; color: #8B7D6B; line-height: 1.6; margin: 4px 0 0 0;">
-                AI tanácsadás és tervezés vállalkozásoknak<br>
-                Egyedi alkalmazások magyar vállalkozásoknak.<br>
+                ${footerLine}<br>
+                ${footerSub}<br>
                 <a href="https://www.gaborvajda.com" style="color: #C2613A; text-decoration: none;">www.gaborvajda.com</a>
               </p>
               <p style="font-family: Arial, sans-serif; font-size: 11px; color: #B0A696; margin: 16px 0 0 0;">
-                Ezt az emailt azért kaptad, mert kitöltötted az AI felmérést a felmeres.gaborvajda.com oldalon.<br>
-                Saasxpert Kft.
+                ${footerDisclaimer}
               </p>
             </td>
           </tr>
@@ -190,9 +244,12 @@ function renderEmailHtml(
 </html>`;
 }
 
-function getFirstName(fullName: string): string {
+function getFirstName(fullName: string, lang: string = "hu"): string {
   const parts = fullName.trim().split(/\s+/);
-  return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+  if (parts.length === 1) return parts[0];
+  // Hungarian: family name first, so first name is the last word
+  // English: given name first, so first name is the first word
+  return lang === "en" ? parts[0] : parts[parts.length - 1];
 }
 
 // --- Main handler ---
@@ -247,6 +304,8 @@ Deno.serve(async (req) => {
     }
 
     // Call Claude API (using raw fetch — no SDK needed in Deno)
+    const lang = assessment.lang ?? "hu";
+    const systemPrompt = lang === "en" ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT;
     const userPrompt = buildUserPrompt(
       assessment.answers as Record<string, unknown>,
       assessment.industry,
@@ -264,7 +323,7 @@ Deno.serve(async (req) => {
         model: "claude-sonnet-4-20250514",
         max_tokens: 2000,
         temperature: 0.7,
-        system: SYSTEM_PROMPT,
+        system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
       }),
     });
@@ -293,15 +352,19 @@ Deno.serve(async (req) => {
     // Send email via Resend (raw fetch)
     const lead = assessment.leads;
     if (lead && aiSuggestions) {
-      const firstName = getFirstName(lead.name || "");
+      const firstName = getFirstName(lead.name || "", lang);
       const emailHtml = renderEmailHtml(
         firstName,
         assessment.industry,
         aiSuggestions,
-        calendlyUrl
+        calendlyUrl,
+        lang
       );
 
       const subjectName = firstName || lead.email.split("@")[0];
+      const subject = lang === "en"
+        ? `${subjectName}, here are your AI automation suggestions!`
+        : `${subjectName}, itt az AI automatizálási javaslatod!`;
 
       const resendRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -312,7 +375,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from: fromEmail,
           to: lead.email,
-          subject: `${subjectName}, itt az AI automatizálási javaslatod!`,
+          subject,
           html: emailHtml,
         }),
       });
@@ -380,7 +443,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           from: fromEmail,
           to: "gabor@saasxpert.com",
-          subject: `Új AI felmérés: ${lead.name || lead.email} (${assessment.industry})`,
+          subject: `Új AI felmérés [${lang.toUpperCase()}]: ${lead.name || lead.email} (${assessment.industry})`,
           html: adminHtml,
         }),
       });

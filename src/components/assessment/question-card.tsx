@@ -12,6 +12,8 @@ interface QuestionCardProps {
   question: Question;
   answers: Record<string, unknown>;
   freeTextExtras: Record<string, string>;
+  painHints?: Record<string, { question: string; placeholder: string }>;
+  lang?: "hu" | "en";
   onAnswer: (value: unknown) => void;
   onFreeTextExtra: (questionId: string, value: string) => void;
   onNext: () => void;
@@ -24,6 +26,8 @@ export function QuestionCard({
   question,
   answers,
   freeTextExtras,
+  painHints,
+  lang = "hu",
   onAnswer,
   onFreeTextExtra,
   onNext,
@@ -31,6 +35,7 @@ export function QuestionCard({
   canProceed,
   isFirst,
 }: QuestionCardProps) {
+  const isEn = lang === "en";
   const currentAnswer = answers[question.id];
 
   return (
@@ -56,6 +61,7 @@ export function QuestionCard({
               options={question.options}
               value={(currentAnswer as string[]) || []}
               freeTextValues={freeTextExtras}
+              lang={lang}
               onChange={(v) => onAnswer(v)}
               onFreeTextChange={(optionId, v) => onFreeTextExtra(optionId, v)}
             />
@@ -73,6 +79,7 @@ export function QuestionCard({
               selectedWasters={(answers.time_wasters as string[]) || []}
               value={(currentAnswer as Record<string, string>) || {}}
               freeTextExtras={freeTextExtras}
+              painHints={painHints}
               onChange={(v) => onAnswer(v)}
             />
           )}
@@ -82,7 +89,7 @@ export function QuestionCard({
           {!isFirst && (
             <Button variant="ghost" size="sm" onClick={onPrev}>
               <ArrowLeft className="w-4 h-4 mr-1" />
-              Vissza
+              {isEn ? "Back" : "Vissza"}
             </Button>
           )}
           <Button
@@ -90,7 +97,7 @@ export function QuestionCard({
             disabled={!canProceed && question.required}
             className="ml-auto"
           >
-            Tovább
+            {isEn ? "Next" : "Tovább"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

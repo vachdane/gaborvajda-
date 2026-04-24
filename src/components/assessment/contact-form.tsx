@@ -13,6 +13,7 @@ interface ContactFormProps {
   gdprConsent: boolean;
   isSubmitting: boolean;
   error: string | null;
+  lang?: "hu" | "en";
   onNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onPhoneChange: (value: string) => void;
@@ -28,6 +29,7 @@ export function ContactForm({
   gdprConsent,
   isSubmitting,
   error,
+  lang = "hu",
   onNameChange,
   onEmailChange,
   onPhoneChange,
@@ -35,6 +37,7 @@ export function ContactForm({
   onSubmit,
   onPrev,
 }: ContactFormProps) {
+  const isEn = lang === "en";
   const canSubmit =
     name.trim().length > 0 &&
     email.includes("@") &&
@@ -54,21 +57,22 @@ export function ContactForm({
       <form onSubmit={handleFormSubmit} className="space-y-6">
         <div>
           <h2 className="font-heading text-2xl md:text-3xl font-semibold text-foreground leading-tight">
-            Már csak egy lépés!
+            {isEn ? "Just one more step!" : "Már csak egy lépés!"}
           </h2>
           <p className="text-muted-foreground mt-2 font-body leading-relaxed">
-            Add meg az elérhetőségedet, és küldök egy személyre szabott
-            javaslatot AI automatizálási lehetőségekkel a céged számára.
+            {isEn
+              ? "Enter your details and I'll send you a personalised AI automation plan for your business."
+              : "Add meg az elérhetőségedet, és küldök egy személyre szabott javaslatot AI automatizálási lehetőségekkel a céged számára."}
           </p>
         </div>
 
         <div className="space-y-4 w-full">
           <div className="space-y-2">
-            <Label htmlFor="name">Név *</Label>
+            <Label htmlFor="name">{isEn ? "Name *" : "Név *"}</Label>
             <Input
               id="name"
               type="text"
-              placeholder="Kovács Tamás"
+              placeholder={isEn ? "John Smith" : "Kovács Tamás"}
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               required
@@ -76,7 +80,7 @@ export function ContactForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email cím *</Label>
+            <Label htmlFor="email">{isEn ? "Email address *" : "Email cím *"}</Label>
             <Input
               id="email"
               type="email"
@@ -88,7 +92,7 @@ export function ContactForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Telefonszám (opcionális)</Label>
+            <Label htmlFor="phone">{isEn ? "Phone number (optional)" : "Telefonszám (opcionális)"}</Label>
             <Input
               id="phone"
               type="tel"
@@ -108,9 +112,9 @@ export function ContactForm({
               htmlFor="gdpr"
               className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
             >
-              Elfogadom, hogy az adataimat a Saasxpert Kft. az AI felmérés
-              kiértékelése és a személyre szabott javaslat elküldése céljából
-              kezelje. Az adataimat bármikor töröltethetem.
+              {isEn
+                ? "I agree that Saasxpert Kft. may process my data for the purpose of evaluating the AI assessment and sending personalised suggestions. I can request deletion of my data at any time."
+                : "Elfogadom, hogy az adataimat a Saasxpert Kft. az AI felmérés kiértékelése és a személyre szabott javaslat elküldése céljából kezelje. Az adataimat bármikor töröltethetem."}
             </Label>
           </div>
         </div>
@@ -122,7 +126,7 @@ export function ContactForm({
         <div className="flex items-center gap-3 pt-4">
           <Button type="button" variant="ghost" size="sm" onClick={onPrev}>
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Vissza
+            {isEn ? "Back" : "Vissza"}
           </Button>
           <Button
             type="submit"
@@ -130,10 +134,10 @@ export function ContactForm({
             className="ml-auto"
           >
             {isSubmitting ? (
-              <span className="animate-pulse">Feldolgozás...</span>
+              <span className="animate-pulse">{isEn ? "Processing..." : "Feldolgozás..."}</span>
             ) : (
               <>
-                Kérem a javaslatokat
+                {isEn ? "Send me the suggestions" : "Kérem a javaslatokat"}
                 <Send className="w-4 h-4 ml-2" />
               </>
             )}

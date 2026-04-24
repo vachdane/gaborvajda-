@@ -14,6 +14,7 @@ export const assessSchema = z.object({
   answers: z.record(z.string(), z.unknown()),
   industry: z.string().min(1),
   team_size: z.string().min(1),
+  lang: z.enum(["hu", "en"]).default("hu"),
 });
 
 export const sendEmailSchema = z.object({

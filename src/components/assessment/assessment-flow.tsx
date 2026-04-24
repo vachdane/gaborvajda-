@@ -7,11 +7,17 @@ import { ProgressBar } from "./progress-bar";
 import { QuestionCard } from "./question-card";
 import { ContactForm } from "./contact-form";
 import { LoadingScreen } from "./loading-screen";
-import { QUESTIONS, PAIN_HINTS } from "@/lib/constants";
+import { getQuestions, getPainHints, type Lang } from "@/lib/constants";
 
-export function AssessmentFlow() {
+interface AssessmentFlowProps {
+  lang?: Lang;
+}
+
+export function AssessmentFlow({ lang = "hu" }: AssessmentFlowProps) {
   const router = useRouter();
-  const assessment = useAssessment();
+  const questions = getQuestions(lang);
+  const painHints = getPainHints(lang);
+  const assessment = useAssessment(questions);
   const [freeTextExtras, setFreeTextExtras] = useState<Record<string, string>>(
     {}
   );
@@ -41,7 +47,7 @@ export function AssessmentFlow() {
     try {
       // Build the full answers object with labels for the API
       const answersWithLabels: Record<string, unknown> = {};
-      for (const q of QUESTIONS) {
+      for (const q of questions) {
         const raw = curr.answers[q.id];
         if (raw === undefined) continue;
 
@@ -66,7 +72,7 @@ export function AssessmentFlow() {
           const labeled: Record<string, string> = {};
           for (const [id, text] of Object.entries(painMap)) {
             if (text.trim()) {
-              const hint = PAIN_HINTS[id];
+              const hint = painHints[id];
               labeled[hint?.question || id] = text;
             }
           }
@@ -77,7 +83,7 @@ export function AssessmentFlow() {
       }
 
       // Get industry and team_size labels
-      const industryQ = QUESTIONS.find((q) => q.id === "industry");
+      const industryQ = questions.find((q) => q.id === "industry");
       const industryOption = industryQ?.options?.find(
         (o) => o.id === curr.answers.industry
       );
@@ -86,7 +92,7 @@ export function AssessmentFlow() {
           ? extras.industry
           : industryOption?.label || (curr.answers.industry as string);
 
-      const teamQ = QUESTIONS.find((q) => q.id === "team_size");
+      const teamQ = questions.find((q) => q.id === "team_size");
       const teamLabel =
         teamQ?.options?.find((o) => o.id === curr.answers.team_size)
           ?.label || (curr.answers.team_size as string);
@@ -117,6 +123,7 @@ export function AssessmentFlow() {
           answers: answersWithLabels,
           industry: industryLabel,
           team_size: teamLabel,
+          lang,
         }),
       });
 
@@ -128,7 +135,8 @@ export function AssessmentFlow() {
       const assessData = await assessRes.json();
 
       // Pass assessment_id to thank-you page for background processing
-      router.push(`/koszonjuk?aid=${assessData.assessment_id}`);
+      const thanksPath = lang === "en" ? "/en/thankyou" : "/koszonjuk";
+      router.push(`${thanksPath}?aid=${assessData.assessment_id}`);
     } catch (err) {
       curr.setError(
         err instanceof Error
@@ -139,7 +147,7 @@ export function AssessmentFlow() {
     } finally {
       curr.setSubmitting(false);
     }
-  }, [router]);
+  }, [router, lang, questions, painHints]);
 
   if (isProcessing && assessment.isSubmitting) {
     return <LoadingScreen />;
@@ -160,6 +168,8 @@ export function AssessmentFlow() {
           question={assessment.currentQuestion}
           answers={assessment.answers}
           freeTextExtras={freeTextExtras}
+          painHints={painHints}
+          lang={lang}
           onAnswer={(value) =>
             assessment.setAnswer(assessment.currentQuestion!.id, value)
           }
@@ -179,6 +189,7 @@ export function AssessmentFlow() {
           gdprConsent={assessment.contactInfo.gdprConsent}
           isSubmitting={assessment.isSubmitting}
           error={assessment.error}
+          lang={lang}
           onNameChange={(v) => assessment.setContact("name", v)}
           onEmailChange={(v) => assessment.setContact("email", v)}
           onPhoneChange={(v) => assessment.setContact("phone", v)}

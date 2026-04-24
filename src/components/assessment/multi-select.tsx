@@ -8,6 +8,7 @@ interface MultiSelectProps {
   options: QuestionOption[];
   value: string[];
   freeTextValues?: Record<string, string>;
+  lang?: "hu" | "en";
   onChange: (value: string[]) => void;
   onFreeTextChange?: (optionId: string, value: string) => void;
 }
@@ -16,6 +17,7 @@ export function MultiSelect({
   options,
   value,
   freeTextValues,
+  lang = "hu",
   onChange,
   onFreeTextChange,
 }: MultiSelectProps) {
@@ -35,7 +37,7 @@ export function MultiSelect({
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground font-body">
-        Több választ is megjelölhetsz
+        {lang === "en" ? "You can select multiple answers" : "Több választ is megjelölhetsz"}
       </p>
       <div className="flex flex-wrap gap-2.5">
         {options.map((option) => {

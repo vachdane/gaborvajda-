@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
         answers: parsed.data.answers,
         industry: parsed.data.industry,
         team_size: parsed.data.team_size,
+        lang: parsed.data.lang,
       })
       .select("id")
       .single();

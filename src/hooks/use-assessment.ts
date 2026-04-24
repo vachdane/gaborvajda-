@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducer, useCallback } from "react";
-import { QUESTIONS } from "@/lib/constants";
+import type { Question } from "@/lib/constants";
 
 interface AssessmentState {
   currentStep: number;
@@ -71,14 +71,14 @@ function reducer(
   }
 }
 
-export function useAssessment() {
+export function useAssessment(questions: Question[]) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const totalSteps = QUESTIONS.length + 1; // questions + contact form
-  const isQuestionStep = state.currentStep < QUESTIONS.length;
-  const isContactStep = state.currentStep === QUESTIONS.length;
+  const totalSteps = questions.length + 1; // questions + contact form
+  const isQuestionStep = state.currentStep < questions.length;
+  const isContactStep = state.currentStep === questions.length;
   const currentQuestion = isQuestionStep
-    ? QUESTIONS[state.currentStep]
+    ? questions[state.currentStep]
     : null;
 
   const setAnswer = useCallback((questionId: string, value: unknown) => {
